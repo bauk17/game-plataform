@@ -12,7 +12,7 @@ function main()
     print(i .. ' - ' .. gameConfig.name)
   end
 
-  local gameId = readNumber('Choose the game: ', 1, 2, 'Invalid choice. Try again.')
+  local gameId = readNumber('Choose the game: ', 1, #games, 'Invalid choice. Try again.')
   local gameConfig = games[gameId]
 
   local GameClass = require(gameConfig.filename)
