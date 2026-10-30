@@ -13,6 +13,10 @@ function main()
   end
 
   local gameId = readNumber('Choose the game: ', 1, #games, 'Invalid choice. Try again.')
+  if not gameId then
+    return
+  end
+
   local gameConfig = games[gameId]
 
   local GameClass = require(gameConfig.filename)
