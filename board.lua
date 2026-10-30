@@ -20,20 +20,27 @@ function Board.create(rows, columns, defaultValue)
 end
 
 function Board:draw()
-  local text = ' '
-  for i=1,self.columns do
-    text = text .. ' ' .. tostring(i)
+  local parts = {"   "}
+
+  for i = 1, self.columns do
+    parts[#parts + 1] = string.format("%2d ", i)
   end
-  text = text .. '\n'
-  for i=1,self.rows do
+
+  parts[#parts + 1] = "\n"
+
+  for i = 1, self.rows do
     local row = self.data[i]
-    text = text .. tostring(i)
-    for j=1,#row do
-      text = text ..' ' .. row[j]
+
+    parts[#parts + 1] = string.format("%2d ", i)
+
+    for j = 1, #row do
+      parts[#parts + 1] = string.format("%2s ", tostring(row[j]))
     end
-    text = text .. '\n'
+
+    parts[#parts + 1] = "\n"
   end
-  print(text)
+
+  print(table.concat(parts))
 end
 
 function Board:setValue(row, column, value)
