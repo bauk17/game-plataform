@@ -3,7 +3,7 @@ function readNumber(message, min, max, err)
   while not number do
     io.write(message)
     local input = io.read()
-    if input == nil then
+    if not input then
       return nil
     end
 

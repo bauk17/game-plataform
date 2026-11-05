@@ -1,9 +1,9 @@
 math.randomseed(os.time())
 
 local Board = require('board')
-local MineSweeper = {}
+local Minesweeper = {}
 
-function MineSweeper.create(config)
+function Minesweeper.create(config)
   local mineSweeper = {}
   mineSweeper.config = config
   mineSweeper.defaultValue = "."
@@ -18,13 +18,13 @@ function MineSweeper.create(config)
   mineSweeper.cheatMode = false
 
   setmetatable(mineSweeper, {
-    __index = MineSweeper
+    __index = Minesweeper
   })
 
   return mineSweeper
 end
 
-function MineSweeper:selectDifficulty()
+function Minesweeper:selectDifficulty()
   while true do
     print("Select Difficulty: Easy, Medium, Hard")
 
@@ -57,7 +57,7 @@ function MineSweeper:selectDifficulty()
   return true
 end
 
-function MineSweeper:generateMines()
+function Minesweeper:generateMines()
   local remainingMineCount = self.difficulty.mines
   while remainingMineCount > 0 do
     local randomRow = math.random(1, self.difficulty.rows)
@@ -71,7 +71,7 @@ function MineSweeper:generateMines()
 
 end
 
-function MineSweeper:countAdjacentMines(row, column)
+function Minesweeper:countAdjacentMines(row, column)
   local minesFound = 0
   for i = -1, 1 do
     for j = -1, 1 do
@@ -90,7 +90,7 @@ function MineSweeper:countAdjacentMines(row, column)
   return minesFound
 end
 
-function MineSweeper:revealCell(row, column)
+function Minesweeper:revealCell(row, column)
   local verified = self.board:getValue(row, column)
 
   if verified ~= "." then
@@ -129,7 +129,7 @@ function MineSweeper:revealCell(row, column)
   end
 end
 
-function MineSweeper:readCoordinates()
+function Minesweeper:readCoordinates()
   print("Choose action:")
   print("1 - Reveal Cell")
   print("2 - Toggle Flag")
@@ -187,7 +187,7 @@ function MineSweeper:readCoordinates()
   end
 end
 
-function MineSweeper:toggleFlag(row, column)
+function Minesweeper:toggleFlag(row, column)
   local cellValue = self.board:getValue(row, column)
   if cellValue == "." then
     self.board:setValue(row, column, "F")
@@ -198,14 +198,14 @@ function MineSweeper:toggleFlag(row, column)
   end
 end
 
-function MineSweeper:displayGameInfo()
+function Minesweeper:displayGameInfo()
   print("Total Mines: " .. self.difficulty.mines)
   print("Flags: " .. self.flags)
   local elapsedTime = os.difftime(os.time(), self.startTime)
   print("Time: " .. elapsedTime .. " seconds")
 end
 
-function MineSweeper:checkWin()
+function Minesweeper:checkWin()
   if self.revealedCells == (self.difficulty.rows * self.difficulty.columns) - self.difficulty.mines then
     self.gameWon = true
     self.gameRunning = false
@@ -215,7 +215,7 @@ end
 
 -- Cheat mode
 
-function MineSweeper:hasRevealedNeighbour(row, column)
+function Minesweeper:hasRevealedNeighbour(row, column)
   for i = -1, 1 do
     for j = -1, 1 do
       if not (i == 0 and j == 0) then
@@ -234,7 +234,7 @@ function MineSweeper:hasRevealedNeighbour(row, column)
   return false
 end
 
-function MineSweeper:getAvailableMoves()
+function Minesweeper:getAvailableMoves()
   local safeCells = {}
   local mineCells = {}
 
@@ -254,7 +254,7 @@ function MineSweeper:getAvailableMoves()
   return safeCells, mineCells
 end
 
-function MineSweeper:autoPlay()
+function Minesweeper:autoPlay()
   local safeCells, mineCells = self:getAvailableMoves()
 
   if #safeCells == 0 and #mineCells == 0 then
@@ -287,7 +287,7 @@ function MineSweeper:autoPlay()
 end
 
 
-function MineSweeper:firstAutoMove()
+function Minesweeper:firstAutoMove()
   local safeCells = {}
 
   for i = 1, self.difficulty.rows do
@@ -310,7 +310,7 @@ function MineSweeper:firstAutoMove()
   return true
 end
 
-function MineSweeper:wait(seconds)
+function Minesweeper:wait(seconds)
   if type(seconds) ~= "number" or seconds < 0 then
     error("Wait duration must be a non-negative number")
   end
@@ -337,7 +337,7 @@ function MineSweeper:wait(seconds)
 end
 
 
-function MineSweeper:run()
+function Minesweeper:run()
   print(self.config.startMessage)
 
   if not self:selectDifficulty() then
@@ -394,4 +394,4 @@ function MineSweeper:run()
   end
 end
 
-return MineSweeper
+return Minesweeper
