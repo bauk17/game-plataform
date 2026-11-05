@@ -68,7 +68,12 @@ function Minesweeper:generateMines()
       remainingMineCount = remainingMineCount - 1
     end
   end
+end
 
+
+function Minesweeper:isInsideBoard(row, column)
+  return row >= 1 and row <= self.difficulty.rows
+    and column >= 1 and column <= self.difficulty.columns
 end
 
 function Minesweeper:countAdjacentMines(row, column)
@@ -78,11 +83,9 @@ function Minesweeper:countAdjacentMines(row, column)
       local neighborRow = row + i
       local neighborColumn = column + j
 
-      if not (i == 0 and j == 0) then
-        if neighborRow >= 1 and neighborRow <= self.difficulty.rows and neighborColumn >= 1 and neighborColumn <= self.difficulty.columns then
-          if self.mines[neighborRow .. ":" ..neighborColumn] then
-            minesFound = minesFound + 1
-          end
+      if not (i == 0 and j == 0) and self:isInsideBoard(neighborRow, neighborColumn) then
+        if self.mines[neighborRow .. ":" ..neighborColumn] then
+          minesFound = minesFound + 1
         end
       end
     end
@@ -91,9 +94,9 @@ function Minesweeper:countAdjacentMines(row, column)
 end
 
 function Minesweeper:revealCell(row, column)
-  local verified = self.board:getValue(row, column)
+  local cell = self.board:getValue(row, column)
 
-  if verified ~= "." then
+  if cell ~= self.defaultValue then
     return
   end
 
@@ -115,10 +118,8 @@ function Minesweeper:revealCell(row, column)
         local neighborRow = row + i
         local neighborColumn = column + j
 
-        if not (i == 0 and j == 0) then
-          if neighborRow >= 1 and neighborRow <= self.difficulty.rows and neighborColumn >= 1 and neighborColumn <= self.difficulty.columns then
-            self:revealCell(neighborRow, neighborColumn)
-          end
+        if not (i == 0 and j == 0) and self:isInsideBoard(neighborRow, neighborColumn) then
+          self:revealCell(neighborRow, neighborColumn)
         end
       end
     end
@@ -129,20 +130,17 @@ function Minesweeper:revealCell(row, column)
   end
 end
 
-function Minesweeper:readCoordinates()
-  print("Choose action:")
-  print("1 - Reveal Cell")
-  print("2 - Toggle Flag")
-  local selectedAction = io.read()
+
+function Minesweeper:processPlayerMove()
+  local selectedAction = readNumber(
+    "Choose an action (1 - Reveal, 2 - Toggle flag): ",
+    1, 2,
+    "Invalid choice. Type 1 to reveal or 2 to toggle a flag."
+  )
 
   if not selectedAction then
     self.gameAborted = true
     self.gameRunning = false
-    return
-  end
-
-  if selectedAction ~= "1" and selectedAction ~= "2" then
-    print("Invalid choice. Type 1 to reveal or 2 to toggle a flag.")
     return
   end
 
@@ -175,14 +173,14 @@ function Minesweeper:readCoordinates()
     return
   end
 
-  if row < 1 or row > self.difficulty.rows or column < 1 or column > self.difficulty.columns then
+  if not self:isInsideBoard(row, column) then
     print("Invalid coordinate.")
     return
   end
 
-  if selectedAction == "1" then
+  if selectedAction == 1 then
     self:revealCell(row, column)
-  else
+  elseif selectedAction == 2 then
     self:toggleFlag(row, column)
   end
 end
@@ -379,7 +377,7 @@ function Minesweeper:run()
     self.board:draw()
 
     while self.gameRunning do
-      self:readCoordinates()
+      self:processPlayerMove()
       self:displayGameInfo()
       self.board:draw()
     end
