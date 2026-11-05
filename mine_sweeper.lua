@@ -17,6 +17,7 @@ function Minesweeper.create(config)
   mineSweeper.gameWon = false
   mineSweeper.gameAborted = false
   mineSweeper.cheatMode = false
+  mineSweeper.cheatStalled = false
 
   setmetatable(mineSweeper, {
     __index = Minesweeper
@@ -223,18 +224,19 @@ end
 
 -- Cheat mode
 
-function Minesweeper:hasRevealedNeighbour(row, column)
+function Minesweeper:hasRevealedNeighbor(row, column)
   for i = -1, 1 do
     for j = -1, 1 do
-      if not (i == 0 and j == 0) then
-        local neighborRow = row + i
-        local neighborColumn = column + j
-        if neighborRow >= 1 and neighborRow <= self.difficulty.rows and neighborColumn >= 1 and neighborColumn <= self.difficulty.columns then
-          local neighboringCellValue = self.board:getValue(neighborRow, neighborColumn)
-          if neighboringCellValue == " " or tonumber(neighboringCellValue) then
-            return true
-          end
+      local neighborRow = row + i
+      local neighborColumn = column + j
+
+      if not (i == 0 and j == 0) and self:isInsideBoard(neighborRow, neighborColumn) then
+        local neighboringCellValue = self.board:getValue(neighborRow, neighborColumn)
+
+        if neighboringCellValue == " " or tonumber(neighboringCellValue) then
+          return true
         end
+
       end
     end
   end
@@ -248,13 +250,12 @@ function Minesweeper:getAvailableMoves()
 
   for i = 1, self.difficulty.rows do
     for j = 1, self.difficulty.columns do
-      local value = self.board:getValue(i, j)
-      local isMine = self.mines[i .. ":" .. j]
+      local isHidden = self.board:getValue(i, j) == self.defaultValue
 
-      if value == "." and not isMine and self:hasRevealedNeighbour(i, j) then
-        table.insert(safeCells, {row = i, column = j})
-      elseif value == "." and isMine then
-        table.insert(mineCells, {row = i, column = j})
+      if isHidden and self:hasRevealedNeighbor(i, j) then
+        local isMine = self.mines[i .. ":" .. j]
+        local targetList = isMine and mineCells or safeCells
+        table.insert(targetList, {row = i, column = j})
       end
     end
   end
@@ -266,7 +267,7 @@ function Minesweeper:autoPlay()
   local safeCells, mineCells = self:getAvailableMoves()
 
   if #safeCells == 0 and #mineCells == 0 then
-    return self:firstAutoMove()
+    return false
   end
 
   local selectedAction
@@ -376,6 +377,7 @@ function Minesweeper:run()
       local moved = self:autoPlay()
 
       if not moved then
+        self.cheatStalled = true
         break
       end
 
@@ -397,6 +399,8 @@ function Minesweeper:run()
     print("Game ended.")
   elseif self.gameWon then
     print("Congratulations! You won")
+  elseif self.cheatStalled then
+    print("Cheat stopped: no cell with an explored neighbor is left.")
   else
     print("You lose. Try again")
   end
