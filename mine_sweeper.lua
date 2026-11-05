@@ -2,6 +2,7 @@ math.randomseed(os.time())
 
 local Board = require('board')
 local Minesweeper = {}
+local CHEAT_KEYWORD = "cheat"
 
 function Minesweeper.create(config)
   local mineSweeper = {}
@@ -24,38 +25,47 @@ function Minesweeper.create(config)
   return mineSweeper
 end
 
+function Minesweeper:parseDifficultyInput(input)
+  local selectedDifficulty = nil
+  local isCheatRequested = false
+
+  for token in string.gmatch(string.lower(input), "%S+") do
+    if token == CHEAT_KEYWORD then
+      isCheatRequested = true
+    elseif self.config.difficulties[token] and not selectedDifficulty then
+      selectedDifficulty = self.config.difficulties[token]
+    else
+      return nil
+    end
+  end
+
+  return selectedDifficulty, isCheatRequested
+end
+
 function Minesweeper:selectDifficulty()
   while true do
     print("Select Difficulty: Easy, Medium, Hard")
 
-    local difficulty = io.read()
-    if not difficulty then
+    local input = io.read()
+
+    if not input then
       self.gameAborted = true
       return false
     end
 
-    local normalizedDifficulty = string.lower(string.gsub(difficulty, "%s+", ""))
 
-    if normalizedDifficulty == "easy" then
-      self.difficulty = self.config.difficulties.easy
-      break
-    elseif normalizedDifficulty == "medium" then
-      self.difficulty = self.config.difficulties.medium
-      break
-    elseif normalizedDifficulty == "hard" then
-      self.difficulty = self.config.difficulties.hard
-      break
-    elseif normalizedDifficulty == "cheat" then
-      self.cheatMode = true
-      self.difficulty = self.config.difficulties.easy
-      break
-    else
-      print("Invalid difficulty. Try again")
+    local difficulty, isCheatRequested = self:parseDifficultyInput(input)
+
+    if difficulty then
+      self.difficulty = difficulty
+      self.cheatMode = isCheatRequested
+      return true
     end
-  end
 
-  return true
+    print("Invalid difficulty. Try again")
+  end
 end
+
 
 function Minesweeper:generateMines()
   local remainingMineCount = self.difficulty.mines
